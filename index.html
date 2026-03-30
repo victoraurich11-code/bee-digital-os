@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bee Digital OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C96A;
+  --dark: #111;
+  --dark2: #1C1C1C;
+  --dark3: #252525;
+  --surface: #F8F6F1;
+  --surface2: #EFECE5;
+  --border: #DDD8CE;
+  --muted: #888880;
+  --text: #222220;
+  --green: #2D8A55;
+  --green-bg: #EAF5EF;
+  --red: #C0392B;
+  --red-bg: #FDECEA;
+  --blue: #2563A8;
+  --blue-bg: #EBF2FB;
+  --amber: #B45309;
+  --amber-bg: #FEF3C7;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#EEE;font-size:14px;line-height:1.6;min-height:100vh}
+
+/* LOGIN */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--dark)}
+.login-box{background:var(--dark2);border:1px solid #2A2A2A;border-radius:12px;padding:48px 40px;width:360px;text-align:center}
+.login-logo{font-family:'Cormorant Garamond',serif;font-size:32px;margin-bottom:4px}
+.login-logo span{color:var(--gold);font-style:italic}
+.login-sub{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#555;margin-bottom:32px}
+.login-box input{width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:12px 14px;color:#EEE;font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:12px;outline:none;transition:border-color .2s}
+.login-box input:focus{border-color:var(--gold)}
+.login-box button{width:100%;background:var(--gold);color:#111;border:none;border-radius:6px;padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.login-box button:hover{background:var(--gold-light)}
+.login-err{color:#E74C3C;font-size:12px;margin-top:8px;display:none}
+
+/* APP SHELL */
+#app{display:none;min-height:100vh;flex-direction:column}
+.topbar{background:var(--dark2);border-bottom:1px solid #2A2A2A;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-logo{font-family:'Cormorant Garamond',serif;font-size:20px}
+.topbar-logo span{color:var(--gold);font-style:italic}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.topbar-user{font-size:12px;color:#555}
+.btn-logout{background:transparent;border:1px solid #333;color:#888;border-radius:4px;padding:4px 12px;font-size:12px;cursor:pointer;transition:all .2s}
+.btn-logout:hover{border-color:#888;color:#EEE}
+
+.layout{display:flex;flex:1}
+
+/* SIDEBAR */
+.sidebar{width:200px;background:var(--dark2);border-right:1px solid #2A2A2A;padding:20px 0;flex-shrink:0}
+.nav-section{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#444;padding:16px 20px 6px;font-weight:500}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;transition:all .2s;border-left:2px solid transparent;color:#888;font-size:13px}
+.nav-item:hover{background:#222;color:#CCC}
+.nav-item.active{background:#222;color:var(--gold);border-left-color:var(--gold)}
+.nav-icon{width:16px;height:16px;opacity:0.7;flex-shrink:0}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;background:#161616}
+.page{display:none;padding:28px 32px;animation:fadeIn .2s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:#EEE;line-height:1}
+.page-desc{font-size:13px;color:#555;margin-top:4px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--dark2);border:1px solid #2A2A2A;border-radius:8px;padding:20px}
+.stat-label{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:8px}
+.stat-value{font-size:28px;font-weight:300;color:#EEE;line-height:1}
+.stat-sub{font-size:12px;color:#555;margin-top:4px}
+.stat-card.gold .stat-value{color:var(--gold)}
+.stat-card.green .stat-value{color:#2D8A55}
+
+/* CARDS GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+
+/* CARD */
+.card{background:var(--dark2);border:1px solid #2A2A2A;border-radius:8px;padding:18px;cursor:pointer;transition:border-color .2s}
+.card:hover{border-color:#444}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.card-title{font-size:14px;font-weight:500;color:#DDD}
+.card-meta{font-size:12px;color:#555;margin-top:3px}
+.card-actions{display:flex;gap:6px;margin-top:14px}
+
+/* BADGE */
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-lead{background:#1E293B;color:#93C5FD}
+.badge-contactado{background:#1E2A1E;color:#86EFAC}
+.badge-proposta{background:#2D1E00;color:#FCD34D}
+.badge-negociacao{background:#2A1A00;color:#FB923C}
+.badge-fechado{background:#0F2E1A;color:#34D399}
+.badge-perdido{background:#2D1010;color:#F87171}
+.badge-briefing{background:#1E293B;color:#93C5FD}
+.badge-design{background:#2D1E3A;color:#C4B5FD}
+.badge-desenvolvimento{background:#1E2A2A;color:#67E8F9}
+.badge-revisao{background:#2A2000;color:#FCD34D}
+.badge-entregue{background:#0F2E1A;color:#34D399}
+.badge-pausado{background:#2A2A2A;color:#888}
+.badge-pendente{background:#2A2000;color:#FCD34D}
+.badge-pago{background:#0F2E1A;color:#34D399}
+.badge-atraso{background:#2D1010;color:#F87171}
+.badge-ideia{background:#1E293B;color:#93C5FD}
+.badge-escrita{background:#2D1E3A;color:#C4B5FD}
+.badge-publicado{background:#0F2E1A;color:#34D399}
+.badge-alta{background:#2D1010;color:#F87171}
+.badge-media{background:#2A2000;color:#FCD34D}
+.badge-baixa{background:#1E2A1E;color:#86EFAC}
+.badge-concluido{background:#0F2E1A;color:#34D399}
+
+/* TABLE */
+.table-wrap{background:var(--dark2);border:1px solid #2A2A2A;border-radius:8px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#555;padding:12px 16px;text-align:left;border-bottom:1px solid #2A2A2A;font-weight:500}
+td{padding:12px 16px;border-bottom:1px solid #1E1E1E;font-size:13px;color:#CCC;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#1E1E1E}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:8px 16px;border-radius:6px;cursor:pointer;border:none;transition:all .2s;letter-spacing:0.04em;text-transform:uppercase}
+.btn-primary{background:var(--gold);color:#111}
+.btn-primary:hover{background:var(--gold-light)}
+.btn-ghost{background:transparent;border:1px solid #333;color:#888}
+.btn-ghost:hover{border-color:#666;color:#CCC}
+.btn-danger{background:transparent;border:1px solid #3D1515;color:#F87171}
+.btn-danger:hover{background:#2D1010}
+.btn-sm{padding:5px 10px;font-size:11px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--dark2);border:1px solid #333;border-radius:10px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid #2A2A2A;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:#EEE}
+.modal-close{background:transparent;border:none;color:#555;cursor:pointer;font-size:20px;line-height:1;padding:4px}
+.modal-close:hover{color:#EEE}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid #2A2A2A;display:flex;justify-content:flex-end;gap:8px}
+
+/* FORM */
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:6px;font-weight:500}
+.form-control{width:100%;background:#111;border:1px solid #2A2A2A;border-radius:6px;padding:10px 12px;color:#EEE;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.form-control:focus{border-color:var(--gold)}
+select.form-control option{background:#1C1C1C}
+textarea.form-control{resize:vertical;min-height:80px}
+
+/* PIPELINE KANBAN */
+.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;overflow-x:auto}
+.kanban-col{background:#1A1A1A;border:1px solid #2A2A2A;border-radius:8px;padding:12px;min-width:180px}
+.kanban-col-title{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:12px;font-weight:500}
+.kanban-card{background:var(--dark2);border:1px solid #2A2A2A;border-radius:6px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.kanban-card:hover{border-color:#444}
+.kanban-card-title{font-size:13px;color:#DDD;font-weight:500;margin-bottom:4px}
+.kanban-card-sub{font-size:11px;color:#555}
+.kanban-card-value{font-size:12px;color:var(--gold);margin-top:6px;font-weight:500}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 20px;color:#444}
+.empty-icon{font-size:32px;margin-bottom:12px;opacity:0.3}
+.empty-text{font-size:14px}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:#444;font-size:13px}
+
+/* NOTIFICATION */
+.notif{position:fixed;bottom:24px;right:24px;background:#2D8A55;color:white;padding:12px 20px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
+.notif.show{opacity:1}
+.notif.error{background:#C0392B}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .kanban{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo"><span>Bee</span> Digital</div>
+    <div class="login-sub">Operating System</div>
+    <input type="text" id="loginUser" placeholder="Utilizador" autocomplete="off">
+    <input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">Entrar</button>
+    <div class="login-err" id="loginErr">Credenciais incorretas</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex-direction:column;min-height:100vh">
+  <div class="topbar">
+    <div class="topbar-logo"><span>Bee</span> Digital OS</div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbarUser"></span>
+      <button class="btn-logout" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="1.5"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-section">Negócio</div>
+      <div class="nav-item" onclick="showPage('pipeline')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.5" d="M3 6h18M3 12h18M3 18h18"/></svg>
+        Pipeline
+      </div>
+      <div class="nav-item" onclick="showPage('clientes')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+        Clientes
+      </div>
+      <div class="nav-item" onclick="showPage('projetos')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Projetos
+      </div>
+      <div class="nav-item" onclick="showPage('tarefas')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.5" d="M5 13l4 4L19 7"/></svg>
+        Tarefas
+      </div>
+      <div class="nav-section">Financeiro</div>
+      <div class="nav-item" onclick="showPage('mrr')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        MRR
+      </div>
+      <div class="nav-section">Conteúdo</div>
+      <div class="nav-item" onclick="showPage('conteudo')">
+        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        SEO / Conteúdo
+      </div>
+    </div>
+
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-desc">Visão geral do negócio</div>
+          </div>
+        </div>
+        <div class="stats-row" id="dashStats">
+          <div class="stat-card gold"><div class="stat-label">MRR</div><div class="stat-value" id="dMRR">—</div><div class="stat-sub">recorrência mensal</div></div>
+          <div class="stat-card"><div class="stat-label">Clientes ativos</div><div class="stat-value" id="dClientes">—</div><div class="stat-sub">com projeto ativo</div></div>
+          <div class="stat-card"><div class="stat-label">Projetos em curso</div><div class="stat-value" id="dProjetos">—</div><div class="stat-sub">em execução</div></div>
+          <div class="stat-card"><div class="stat-label">Pipeline</div><div class="stat-value" id="dPipeline">—</div><div class="stat-sub">valor potencial</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div>
+            <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:12px">Tarefas urgentes</div>
+            <div id="dashTarefas"><div class="loading">A carregar...</div></div>
+          </div>
+          <div>
+            <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:12px">Projetos ativos</div>
+            <div id="dashProjetos"><div class="loading">A carregar...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PIPELINE -->
+      <div class="page" id="page-pipeline">
+        <div class="page-header">
+          <div><div class="page-title">Pipeline</div><div class="page-desc">Gestão de leads e propostas</div></div>
+          <button class="btn btn-primary" onclick="openModal('pipeline')">+ Novo lead</button>
+        </div>
+        <div class="kanban" id="pipelineKanban"><div class="loading">A carregar...</div></div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div class="page" id="page-clientes">
+        <div class="page-header">
+          <div><div class="page-title">Clientes</div><div class="page-desc">Base de clientes Bee Digital</div></div>
+          <button class="btn btn-primary" onclick="openModal('clientes')">+ Novo cliente</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Nome</th><th>Contacto</th><th>Setor</th><th>Estado</th><th>Desde</th><th></th></tr></thead>
+          <tbody id="clientesBody"><tr><td colspan="6" class="loading">A carregar...</td></tr></tbody>
+        </table></div>
+      </div>
+
+      <!-- PROJETOS -->
+      <div class="page" id="page-projetos">
+        <div class="page-header">
+          <div><div class="page-title">Projetos</div><div class="page-desc">Estado de todos os projetos</div></div>
+          <button class="btn btn-primary" onclick="openModal('projetos')">+ Novo projeto</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Projeto</th><th>Cliente</th><th>Fase</th><th>Responsável</th><th>Prazo</th><th></th></tr></thead>
+          <tbody id="projetosBody"><tr><td colspan="6" class="loading">A carregar...</td></tr></tbody>
+        </table></div>
+      </div>
+
+      <!-- TAREFAS -->
+      <div class="page" id="page-tarefas">
+        <div class="page-header">
+          <div><div class="page-title">Tarefas</div><div class="page-desc">To-dos e pendentes</div></div>
+          <button class="btn btn-primary" onclick="openModal('tarefas')">+ Nova tarefa</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tarefa</th><th>Projeto</th><th>Prioridade</th><th>Responsável</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="tarefasBody"><tr><td colspan="6" class="loading">A carregar...</td></tr></tbody>
+        </table></div>
+      </div>
+
+      <!-- MRR -->
+      <div class="page" id="page-mrr">
+        <div class="page-header">
+          <div><div class="page-title">MRR & Faturação</div><div class="page-desc">Receita recorrente e setup</div></div>
+          <button class="btn btn-primary" onclick="openModal('mrr')">+ Novo registo</button>
+        </div>
+        <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+          <div class="stat-card gold"><div class="stat-label">MRR total</div><div class="stat-value" id="mrrTotal">—</div></div>
+          <div class="stat-card green"><div class="stat-label">Setup faturado</div><div class="stat-value" id="mrrSetup">—</div></div>
+          <div class="stat-card"><div class="stat-label">Clientes recorrentes</div><div class="stat-value" id="mrrCount">—</div></div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Cliente</th><th>Setup (€)</th><th>MRR (€)</th><th>Estado setup</th><th>Estado MRR</th><th></th></tr></thead>
+          <tbody id="mrrBody"><tr><td colspan="6" class="loading">A carregar...</td></tr></tbody>
+        </table></div>
+      </div>
+
+      <!-- CONTEÚDO -->
+      <div class="page" id="page-conteudo">
+        <div class="page-header">
+          <div><div class="page-title">SEO & Conteúdo</div><div class="page-desc">Artigos, keywords e publicações</div></div>
+          <button class="btn btn-primary" onclick="openModal('conteudo')">+ Novo conteúdo</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Título</th><th>Cliente</th><th>Keyword</th><th>Estado</th><th>Data</th><th></th></tr></thead>
+          <tbody id="conteudoBody"><tr><td colspan="6" class="loading">A carregar...</td></tr></tbody>
+        </table></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Novo registo</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveModal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+const API = "https://bee-digital-os.victoraurich11.workers.dev";
+const TOKEN = "beedigital2025";
+const USERS = { "victor": "bee2025", "cesar": "bee2025" };
+
+let currentUser = null;
+let editingId = null;
+let editingEntity = null;
+
+// ── AUTH ──────────────────────────────────────────
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  if (USERS[user] && USERS[user] === pass) {
+    currentUser = user;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('topbarUser').textContent = user.charAt(0).toUpperCase() + user.slice(1);
+    loadDashboard();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ── API ───────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${API}/${path}`, opts);
+  return res.json();
+}
+
+// ── NAVIGATION ───────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  event.currentTarget.classList.add('active');
+  const loaders = { dashboard: loadDashboard, pipeline: loadPipeline, clientes: loadClientes, projetos: loadProjetos, tarefas: loadTarefas, mrr: loadMRR, conteudo: loadConteudo };
+  if (loaders[name]) loaders[name]();
+}
+
+// ── BADGE ─────────────────────────────────────────
+function badge(val) {
+  if (!val) return '';
+  const slug = val.toLowerCase().replace(/\s+/g, '').replace(/[áà]/g,'a').replace(/[éê]/g,'e').replace(/[í]/g,'i').replace(/[óô]/g,'o').replace(/[ú]/g,'u').replace(/[ã]/g,'a').replace(/[ç]/g,'c');
+  return `<span class="badge badge-${slug}">${val}</span>`;
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('pt-PT', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function fmtEur(v) {
+  if (!v && v !== 0) return '—';
+  return `€${Number(v).toLocaleString('pt-PT')}`;
+}
+
+// ── NOTIFY ────────────────────────────────────────
+function notify(msg, err = false) {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.className = 'notif show' + (err ? ' error' : '');
+  setTimeout(() => el.className = 'notif', 2800);
+}
+
+// ── DASHBOARD ─────────────────────────────────────
+async function loadDashboard() {
+  const [clientes, projetos, tarefas, mrr, pipeline] = await Promise.all([
+    api('GET','clientes'), api('GET','projetos'), api('GET','tarefas'), api('GET','mrr'), api('GET','pipeline')
+  ]);
+
+  const mrrTotal = mrr.filter(m => m.estadoMrr === 'pago').reduce((s,m) => s + Number(m.mrr || 0), 0);
+  const clientesAtivos = clientes.length;
+  const projetosAtivos = projetos.filter(p => !['entregue','pausado'].includes(p.fase)).length;
+  const pipelineVal = pipeline.filter(p => p.fase !== 'perdido').reduce((s,p) => s + Number(p.valor || 0), 0);
+
+  document.getElementById('dMRR').textContent = fmtEur(mrrTotal);
+  document.getElementById('dClientes').textContent = clientesAtivos;
+  document.getElementById('dProjetos').textContent = projetosAtivos;
+  document.getElementById('dPipeline').textContent = fmtEur(pipelineVal);
+
+  const urgentes = tarefas.filter(t => t.prioridade === 'Alta' && t.estado !== 'concluido');
+  document.getElementById('dashTarefas').innerHTML = urgentes.length ? urgentes.slice(0,5).map(t =>
+    `<div class="card" style="margin-bottom:8px" onclick="openModal('tarefas','${t.id}')">
+      <div class="card-title">${t.titulo || '—'}</div>
+      <div class="card-meta">${t.projeto || ''} · ${badge('Alta')}</div>
+    </div>`).join('') : '<div class="empty"><div class="empty-text">Sem tarefas urgentes</div></div>';
+
+  const ativos = projetos.filter(p => !['entregue','pausado'].includes(p.fase)).slice(0,5);
+  document.getElementById('dashProjetos').innerHTML = ativos.length ? ativos.map(p =>
+    `<div class="card" style="margin-bottom:8px" onclick="openModal('projetos','${p.id}')">
+      <div class="card-title">${p.nome || '—'}</div>
+      <div class="card-meta">${p.cliente || ''} · ${badge(p.fase)}</div>
+    </div>`).join('') : '<div class="empty"><div class="empty-text">Sem projetos ativos</div></div>';
+}
+
+// ── PIPELINE ──────────────────────────────────────
+const FASES_PIPELINE = ['lead','contactado','proposta','negociacao','fechado','perdido'];
+
+async function loadPipeline() {
+  const data = await api('GET','pipeline');
+  const kanban = document.getElementById('pipelineKanban');
+  kanban.innerHTML = FASES_PIPELINE.filter(f => f !== 'perdido').map(fase => {
+    const items = data.filter(d => d.fase === fase);
+    return `<div class="kanban-col">
+      <div class="kanban-col-title">${fase.charAt(0).toUpperCase()+fase.slice(1)} (${items.length})</div>
+      ${items.length ? items.map(i => `
+        <div class="kanban-card" onclick="openModal('pipeline','${i.id}')">
+          <div class="kanban-card-title">${i.nome || '—'}</div>
+          <div class="kanban-card-sub">${i.contacto || ''}</div>
+          ${i.valor ? `<div class="kanban-card-value">${fmtEur(i.valor)}</div>` : ''}
+        </div>`).join('') : '<div style="font-size:12px;color:#333;text-align:center;padding:12px">Vazio</div>'}
+    </div>`;
+  }).join('');
+}
+
+// ── CLIENTES ──────────────────────────────────────
+async function loadClientes() {
+  const data = await api('GET','clientes');
+  document.getElementById('clientesBody').innerHTML = data.length ? data.map(c => `
+    <tr>
+      <td><strong>${c.nome || '—'}</strong></td>
+      <td>${c.contacto || '—'}</td>
+      <td>${c.setor || '—'}</td>
+      <td>${badge(c.estado || 'ativo')}</td>
+      <td>${fmtDate(c.criadoEm)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openModal('clientes','${c.id}')">Editar</button></td>
+    </tr>`).join('') : '<tr><td colspan="6"><div class="empty"><div class="empty-text">Sem clientes registados</div></div></td></tr>';
+}
+
+// ── PROJETOS ──────────────────────────────────────
+async function loadProjetos() {
+  const data = await api('GET','projetos');
+  document.getElementById('projetosBody').innerHTML = data.length ? data.map(p => `
+    <tr>
+      <td><strong>${p.nome || '—'}</strong></td>
+      <td>${p.cliente || '—'}</td>
+      <td>${badge(p.fase)}</td>
+      <td>${p.responsavel || '—'}</td>
+      <td>${p.prazo ? fmtDate(p.prazo) : '—'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openModal('projetos','${p.id}')">Editar</button></td>
+    </tr>`).join('') : '<tr><td colspan="6"><div class="empty"><div class="empty-text">Sem projetos</div></div></td></tr>';
+}
+
+// ── TAREFAS ───────────────────────────────────────
+async function loadTarefas() {
+  const data = await api('GET','tarefas');
+  document.getElementById('tarefasBody').innerHTML = data.length ? data.map(t => `
+    <tr>
+      <td><strong>${t.titulo || '—'}</strong></td>
+      <td>${t.projeto || '—'}</td>
+      <td>${badge(t.prioridade)}</td>
+      <td>${t.responsavel || '—'}</td>
+      <td>${badge(t.estado)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openModal('tarefas','${t.id}')">Editar</button></td>
+    </tr>`).join('') : '<tr><td colspan="6"><div class="empty"><div class="empty-text">Sem tarefas</div></div></td></tr>';
+}
+
+// ── MRR ───────────────────────────────────────────
+async function loadMRR() {
+  const data = await api('GET','mrr');
+  const total = data.reduce((s,m) => s + Number(m.mrr || 0), 0);
+  const setup = data.filter(m => m.estadoSetup === 'pago').reduce((s,m) => s + Number(m.setup || 0), 0);
+  document.getElementById('mrrTotal').textContent = fmtEur(total);
+  document.getElementById('mrrSetup').textContent = fmtEur(setup);
+  document.getElementById('mrrCount').textContent = data.length;
+  document.getElementById('mrrBody').innerHTML = data.length ? data.map(m => `
+    <tr>
+      <td><strong>${m.cliente || '—'}</strong></td>
+      <td>${fmtEur(m.setup)}</td>
+      <td>${fmtEur(m.mrr)}</td>
+      <td>${badge(m.estadoSetup)}</td>
+      <td>${badge(m.estadoMrr)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openModal('mrr','${m.id}')">Editar</button></td>
+    </tr>`).join('') : '<tr><td colspan="6"><div class="empty"><div class="empty-text">Sem registos</div></div></td></tr>';
+}
+
+// ── CONTEÚDO ──────────────────────────────────────
+async function loadConteudo() {
+  const data = await api('GET','conteudo');
+  document.getElementById('conteudoBody').innerHTML = data.length ? data.map(c => `
+    <tr>
+      <td><strong>${c.titulo || '—'}</strong></td>
+      <td>${c.cliente || '—'}</td>
+      <td>${c.keyword || '—'}</td>
+      <td>${badge(c.estado)}</td>
+      <td>${c.data ? fmtDate(c.data) : '—'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openModal('conteudo','${c.id}')">Editar</button></td>
+    </tr>`).join('') : '<tr><td colspan="6"><div class="empty"><div class="empty-text">Sem conteúdo</div></div></td></tr>';
+}
+
+// ── MODALS ────────────────────────────────────────
+const FORMS = {
+  pipeline: (d={}) => `
+    <div class="form-group"><label class="form-label">Nome / empresa</label><input class="form-control" id="f_nome" value="${d.nome||''}"></div>
+    <div class="form-group"><label class="form-label">Contacto</label><input class="form-control" id="f_contacto" value="${d.contacto||''}"></div>
+    <div class="form-group"><label class="form-label">Fase</label><select class="form-control" id="f_fase">
+      ${['lead','contactado','proposta','negociacao','fechado','perdido'].map(f=>`<option ${d.fase===f?'selected':''}>${f}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Valor estimado (€)</label><input class="form-control" id="f_valor" type="number" value="${d.valor||''}"></div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea class="form-control" id="f_notas">${d.notas||''}</textarea></div>`,
+
+  clientes: (d={}) => `
+    <div class="form-group"><label class="form-label">Nome</label><input class="form-control" id="f_nome" value="${d.nome||''}"></div>
+    <div class="form-group"><label class="form-label">Contacto</label><input class="form-control" id="f_contacto" value="${d.contacto||''}"></div>
+    <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="f_email" value="${d.email||''}"></div>
+    <div class="form-group"><label class="form-label">Setor</label><input class="form-control" id="f_setor" value="${d.setor||''}"></div>
+    <div class="form-group"><label class="form-label">Estado</label><select class="form-control" id="f_estado">
+      ${['ativo','inativo','prospeto'].map(s=>`<option ${d.estado===s?'selected':''}>${s}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea class="form-control" id="f_notas">${d.notas||''}</textarea></div>`,
+
+  projetos: (d={}) => `
+    <div class="form-group"><label class="form-label">Nome do projeto</label><input class="form-control" id="f_nome" value="${d.nome||''}"></div>
+    <div class="form-group"><label class="form-label">Cliente</label><input class="form-control" id="f_cliente" value="${d.cliente||''}"></div>
+    <div class="form-group"><label class="form-label">Fase</label><select class="form-control" id="f_fase">
+      ${['briefing','design','desenvolvimento','revisao','entregue','pausado'].map(f=>`<option ${d.fase===f?'selected':''}>${f}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Responsável</label><select class="form-control" id="f_responsavel">
+      <option ${d.responsavel==='Victor'?'selected':''}>Victor</option>
+      <option ${d.responsavel==='César'?'selected':''}>César</option>
+      <option ${d.responsavel==='Ambos'?'selected':''}>Ambos</option>
+    </select></div>
+    <div class="form-group"><label class="form-label">Prazo</label><input class="form-control" id="f_prazo" type="date" value="${d.prazo||''}"></div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea class="form-control" id="f_notas">${d.notas||''}</textarea></div>`,
+
+  tarefas: (d={}) => `
+    <div class="form-group"><label class="form-label">Título</label><input class="form-control" id="f_titulo" value="${d.titulo||''}"></div>
+    <div class="form-group"><label class="form-label">Projeto</label><input class="form-control" id="f_projeto" value="${d.projeto||''}"></div>
+    <div class="form-group"><label class="form-label">Prioridade</label><select class="form-control" id="f_prioridade">
+      ${['Alta','Media','Baixa'].map(p=>`<option ${d.prioridade===p?'selected':''}>${p}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Responsável</label><select class="form-control" id="f_responsavel">
+      <option ${d.responsavel==='Victor'?'selected':''}>Victor</option>
+      <option ${d.responsavel==='César'?'selected':''}>César</option>
+    </select></div>
+    <div class="form-group"><label class="form-label">Estado</label><select class="form-control" id="f_estado">
+      ${['pendente','em curso','concluido'].map(s=>`<option ${d.estado===s?'selected':''}>${s}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea class="form-control" id="f_notas">${d.notas||''}</textarea></div>`,
+
+  mrr: (d={}) => `
+    <div class="form-group"><label class="form-label">Cliente</label><input class="form-control" id="f_cliente" value="${d.cliente||''}"></div>
+    <div class="form-group"><label class="form-label">Setup (€)</label><input class="form-control" id="f_setup" type="number" value="${d.setup||''}"></div>
+    <div class="form-group"><label class="form-label">MRR (€)</label><input class="form-control" id="f_mrr" type="number" value="${d.mrr||''}"></div>
+    <div class="form-group"><label class="form-label">Estado setup</label><select class="form-control" id="f_estadoSetup">
+      ${['pendente','pago','atraso'].map(s=>`<option ${d.estadoSetup===s?'selected':''}>${s}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Estado MRR</label><select class="form-control" id="f_estadoMrr">
+      ${['pendente','pago','atraso'].map(s=>`<option ${d.estadoMrr===s?'selected':''}>${s}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea class="form-control" id="f_notas">${d.notas||''}</textarea></div>`,
+
+  conteudo: (d={}) => `
+    <div class="form-group"><label class="form-label">Título</label><input class="form-control" id="f_titulo" value="${d.titulo||''}"></div>
+    <div class="form-group"><label class="form-label">Cliente</label><input class="form-control" id="f_cliente" value="${d.cliente||''}"></div>
+    <div class="form-group"><label class="form-label">Keyword principal</label><input class="form-control" id="f_keyword" value="${d.keyword||''}"></div>
+    <div class="form-group"><label class="form-label">Estado</label><select class="form-control" id="f_estado">
+      ${['ideia','escrita','revisao','publicado'].map(s=>`<option ${d.estado===s?'selected':''}>${s}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Data publicação</label><input class="form-control" id="f_data" type="date" value="${d.data||''}"></div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea class="form-control" id="f_notas">${d.notas||''}</textarea></div>`,
+};
+
+const TITLES = { pipeline:'Lead / Pipeline', clientes:'Cliente', projetos:'Projeto', tarefas:'Tarefa', mrr:'MRR & Faturação', conteudo:'Conteúdo SEO' };
+
+async function openModal(entity, id = null) {
+  editingEntity = entity;
+  editingId = id;
+  let data = {};
+  if (id) {
+    data = await api('GET', `${entity}/${id}`);
+    document.getElementById('modalTitle').textContent = `Editar ${TITLES[entity]}`;
+  } else {
+    document.getElementById('modalTitle').textContent = `Novo ${TITLES[entity]}`;
+  }
+  document.getElementById('modalBody').innerHTML = FORMS[entity](data);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  editingId = null;
+  editingEntity = null;
+}
+
+function getField(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : undefined;
+}
+
+async function saveModal() {
+  const e = editingEntity;
+  let body = {};
+
+  if (e === 'pipeline') body = { nome: getField('f_nome'), contacto: getField('f_contacto'), fase: getField('f_fase'), valor: getField('f_valor'), notas: getField('f_notas') };
+  if (e === 'clientes') body = { nome: getField('f_nome'), contacto: getField('f_contacto'), email: getField('f_email'), setor: getField('f_setor'), estado: getField('f_estado'), notas: getField('f_notas') };
+  if (e === 'projetos') body = { nome: getField('f_nome'), cliente: getField('f_cliente'), fase: getField('f_fase'), responsavel: getField('f_responsavel'), prazo: getField('f_prazo'), notas: getField('f_notas') };
+  if (e === 'tarefas') body = { titulo: getField('f_titulo'), projeto: getField('f_projeto'), prioridade: getField('f_prioridade'), responsavel: getField('f_responsavel'), estado: getField('f_estado'), notas: getField('f_notas') };
+  if (e === 'mrr') body = { cliente: getField('f_cliente'), setup: getField('f_setup'), mrr: getField('f_mrr'), estadoSetup: getField('f_estadoSetup'), estadoMrr: getField('f_estadoMrr'), notas: getField('f_notas') };
+  if (e === 'conteudo') body = { titulo: getField('f_titulo'), cliente: getField('f_cliente'), keyword: getField('f_keyword'), estado: getField('f_estado'), data: getField('f_data'), notas: getField('f_notas') };
+
+  try {
+    if (editingId) {
+      await api('PUT', `${e}/${editingId}`, body);
+      notify('Atualizado com sucesso');
+    } else {
+      await api('POST', e, body);
+      notify('Criado com sucesso');
+    }
+    closeModal();
+    const loaders = { pipeline: loadPipeline, clientes: loadClientes, projetos: loadProjetos, tarefas: loadTarefas, mrr: loadMRR, conteudo: loadConteudo };
+    if (loaders[e]) loaders[e]();
+  } catch {
+    notify('Erro ao guardar', true);
+  }
+}
+</script>
+</body>
+</html>
